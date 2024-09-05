@@ -1,15 +1,20 @@
 import {useUser} from "@clerk/clerk-expo";
 import {Image, Text, View} from "react-native";
-
+import Payment from "@/components/Payment";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "../constants";
 import {formatTime} from "@/lib/utils";
 import {useDriverStore, useLocationStore} from "@/store";
+import { StripeProvider } from '@stripe/stripe-react-native';
+
+
+
 
 const BookRide = () => {
-    const {user} = useUser();
     const {userAddress, destinationAddress} = useLocationStore();
     const {drivers, selectedDriver} = useDriverStore();
+    const { user } = useUser();
+
 
     console.log({drivers});
     console.log({ selectedDriver})
@@ -20,6 +25,11 @@ const BookRide = () => {
     )[0];
 
     return (
+        <StripeProvider
+        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}
+        merchantIdentifier="merchant.identifier" // required for Apple Pay
+        urlScheme="myapp" // find this in app.json 'scheme'
+      >
         <RideLayout title="Book Ride">
             <>
                 <Text className="text-xl font-JakartaSemiBold mb-3">
@@ -62,7 +72,7 @@ const BookRide = () => {
                     <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
                         <Text className="text-lg font-JakartaRegular">Pickup Time</Text>
                         <Text className="text-lg font-JakartaRegular">
-                            {formatTime(driverDetails?.time!)}
+                            {formatTime(parseInt(`${driverDetails?.time!}`))}
                         </Text>
                     </View>
 
@@ -90,8 +100,17 @@ const BookRide = () => {
                         </Text>
                     </View>
                 </View>
+                <Payment 
+                    fullName={user?.fullName!}
+                    email={user?.emailAddresses[0].emailAddress!}
+                    amount={driverDetails?.price!}
+                    driverId={driverDetails?.id}
+                    rideTime={driverDetails?.time!}
+
+                />
             </>
         </RideLayout>
+        </StripeProvider>
     );
 };
 
