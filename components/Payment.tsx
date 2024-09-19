@@ -45,7 +45,7 @@ const Payment = ({
 
   const initializePaymentSheet = async () => {
     const { error } = await initPaymentSheet({
-      merchantDisplayName: "Example, Inc.",
+      merchantDisplayName: "RyanRyde, Inc.",
       intentConfiguration: {
         mode: {
           amount: parseInt(amount) * 100,
@@ -56,6 +56,7 @@ const Payment = ({
           shouldSavePaymentMethod,
           intentCreationCallback,
         ) => {
+          //Step 1: Create payment intent and customer
           const { paymentIntent, customer } = await fetchAPI(
             "/(api)/(stripe)/create",
             {
@@ -73,6 +74,7 @@ const Payment = ({
           );
 
           if (paymentIntent.client_secret) {
+            //Step 2: confirm payment intent
             const { result } = await fetchAPI("/(api)/(stripe)/pay", {
               method: "POST",
               headers: {
@@ -87,6 +89,7 @@ const Payment = ({
             });
 
             if (result.client_secret) {
+              //Step 3: create ride record
               await fetchAPI("/(api)/ride/create", {
                 method: "POST",
                 headers: {
@@ -107,6 +110,7 @@ const Payment = ({
                 }),
               });
 
+              // Step 4: complete payment process
               intentCreationCallback({
                 clientSecret: result.client_secret,
               });

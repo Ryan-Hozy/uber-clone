@@ -17,6 +17,8 @@ export async function POST(request: Request) {
     email,
   });
 
+
+  // handling customer existence 
   if (doesCustomerExist.data.length > 0) {
     customer = doesCustomerExist.data[0];
   } else {
@@ -28,11 +30,17 @@ export async function POST(request: Request) {
     customer = newCustomer;
   }
 
+  //Ephemeral keys allow the client to access certain information on behalf of the customer securely.
   const ephemeralKey = await stripe.ephemeralKeys.create(
     { customer: customer.id },
     { apiVersion: "2024-06-20" },
   );
 
+
+  //A PaymentIntent is an object in Stripe's API that represents the process of 
+  // collecting a payment from a customer. It tracks and manages all the steps involved 
+  // in the payment lifecycle, including payment method collection, customer authentication, 
+  // and final confirmation.
   const paymentIntent = await stripe.paymentIntents.create({
     amount: parseInt(amount) * 100,
     currency: "usd",
